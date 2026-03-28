@@ -266,10 +266,22 @@ async function handleAlert(interaction, userId, username) {
     // Check alert limit
     const { allowed, count, limit } = canCreateAlert(user.id, user.tier);
     if (!allowed) {
-        await interaction.reply({
-            content: `You've reached the free tier limit of ${limit} active alerts (current: ${count}). Remove an alert with /remove or /upgrade for unlimited.`,
-            ephemeral: true,
-        });
+        const embed = new EmbedBuilder()
+            .setColor(0xF39C12)
+            .setTitle('Alert Limit Reached')
+            .setDescription(`You have ${count}/${limit} alerts on the free tier.`)
+            .addFields(
+                { name: 'Want unlimited alerts?', value: 'Upgrade to the TCGPlayer Price Data API on RapidAPI for unlimited alerts, full price history, and priority checks.' },
+            );
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('Upgrade on RapidAPI')
+                .setURL('https://rapidapi.com/lulzasaur9192/api/tcgplayer-price-data?utm_source=discord&utm_medium=bot&utm_campaign=tcg-limit-hit')
+                .setStyle(ButtonStyle.Link),
+        );
+
+        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
         return;
     }
 
@@ -478,14 +490,22 @@ async function handleUpgrade(interaction, userId, username) {
 
     const embed = new EmbedBuilder()
         .setColor(0xF39C12)
-        .setTitle('Upgrade to Paid Tier - $5/month')
+        .setTitle('Upgrade to Pro')
+        .setDescription('Get more from TCG Price Alert Bot with a RapidAPI subscription.')
         .addFields(
-            { name: 'Free Tier', value: '- 3 active alerts\n- Price notifications' },
-            { name: 'Paid Tier ($5/mo)', value: '- Unlimited alerts\n- Full price history\n- Priority checks' },
-        )
-        .setFooter({ text: 'Payment integration coming soon! Contact @lulzasaur to upgrade.' });
+            { name: 'Free Tier', value: '- 3 active alerts\n- Price notifications\n- 30-min price checks' },
+            { name: 'Pro ($9.99/mo)', value: '- Unlimited alerts\n- Full price history\n- Priority checks\n- 5,000 API requests/mo' },
+            { name: 'Ultra ($29.99/mo)', value: '- Everything in Pro\n- 25,000 API requests/mo\n- Bulk card search' },
+        );
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel('Subscribe on RapidAPI')
+            .setURL('https://rapidapi.com/lulzasaur9192/api/tcgplayer-price-data?utm_source=discord&utm_medium=bot&utm_campaign=tcg-upgrade-cmd')
+            .setStyle(ButtonStyle.Link),
+    );
+
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
 }
 
 async function handleHelp(interaction) {
