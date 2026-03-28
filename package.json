@@ -1,0 +1,26 @@
+{
+  "name": "tcg-price-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TCG Price Alert Bot for Telegram and Discord - Pokemon, MTG, Yu-Gi-Oh, Lorcana card price alerts",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "start:telegram": "ENABLE_TELEGRAM=true node src/index.js",
+    "start:discord": "ENABLE_DISCORD=true node src/index.js",
+    "check-prices": "node src/check-prices-cli.js",
+    "feedback": "node src/view-feedback.js",
+    "migrate": "node src/db.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "cron": "^3.3.1",
+    "discord.js": "^14.18.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "undici": "^7.3.0"
+  },
+  "author": "lulzasaur",
+  "license": "MIT"
+}
