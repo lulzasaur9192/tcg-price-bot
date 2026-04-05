@@ -15,6 +15,7 @@
     "migrate": "node src/db.js"
   },
   "dependencies": {
+    "@top-gg/sdk": "^3.1.6",
     "better-sqlite3": "^11.7.0",
     "cron": "^3.3.1",
     "discord.js": "^14.18.0",

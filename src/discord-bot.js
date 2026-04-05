@@ -14,7 +14,9 @@ import {
     StringSelectMenuBuilder,
     ButtonBuilder,
     ButtonStyle,
+    MessageFlags,
 } from 'discord.js';
+import { AutoPoster } from 'topgg-autoposter';
 import { createLogger } from './logger.js';
 import { registerNotifier } from './price-checker.js';
 import {
@@ -100,6 +102,10 @@ function buildCommands() {
             .setDescription('Send feedback or report an issue')
             .addStringOption(opt =>
                 opt.setName('message').setDescription('Your feedback or issue').setRequired(true)),
+
+        new SlashCommandBuilder()
+            .setName('vote')
+            .setDescription('Vote for the bot on Top.gg to help us grow!'),
     ].map(cmd => cmd.toJSON());
 }
 
@@ -181,6 +187,9 @@ export async function startDiscordBot() {
                 case 'feedback':
                     await handleFeedback(interaction, userId, username);
                     break;
+                case 'vote':
+                    await handleVote(interaction);
+                    break;
                 default:
                     await interaction.reply({ content: 'Unknown command.', ephemeral: true });
             }
@@ -251,6 +260,22 @@ export async function startDiscordBot() {
     });
 
     await client.login(token);
+
+    // Top.gg autoposter — posts server count every 30 minutes
+    const topggToken = process.env.TOPGG_TOKEN;
+    if (topggToken) {
+        const ap = AutoPoster(topggToken, client);
+        ap.on('posted', (stats) => {
+            log.info(`Top.gg: posted ${stats.serverCount} servers`);
+        });
+        ap.on('error', (err) => {
+            log.error(`Top.gg autoposter error: ${err.message}`);
+        });
+        log.info('Top.gg autoposter enabled');
+    } else {
+        log.warn('TOPGG_TOKEN not set, skipping autoposter');
+    }
+
     log.info('Discord bot started');
     return client;
 }
@@ -560,6 +585,20 @@ async function handleFeedback(interaction, userId, username) {
         .setTimestamp();
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+async function handleVote(interaction) {
+    const embed = new EmbedBuilder()
+        .setColor(0xFF6B6B)
+        .setTitle('Vote for Price Alert Bot!')
+        .setDescription('Voting helps us rank higher on Top.gg so more people can find us.')
+        .addFields(
+            { name: 'Vote Now', value: '[Click here to vote on Top.gg](https://top.gg/bot/1487352992901369887/vote)' },
+            { name: 'Why Vote?', value: 'Every vote helps the bot reach more collectors and traders!' },
+        )
+        .setTimestamp();
+
+    await interaction.reply({ embeds: [embed] });
 }
 
 export function stopDiscordBot() {
