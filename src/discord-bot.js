@@ -16,7 +16,7 @@ import {
     ButtonStyle,
     MessageFlags,
 } from 'discord.js';
-import { AutoPoster } from 'topgg-autoposter';
+import { Api as TopggApi } from '@top-gg/sdk';
 import { createLogger } from './logger.js';
 import { registerNotifier } from './price-checker.js';
 import {
@@ -261,19 +261,25 @@ export async function startDiscordBot() {
 
     await client.login(token);
 
-    // Top.gg autoposter — posts server count every 30 minutes
+    // Top.gg stats poster — posts server count every 30 minutes
     const topggToken = process.env.TOPGG_TOKEN;
     if (topggToken) {
-        const ap = AutoPoster(topggToken, client);
-        ap.on('posted', (stats) => {
-            log.info(`Top.gg: posted ${stats.serverCount} servers`);
-        });
-        ap.on('error', (err) => {
-            log.error(`Top.gg autoposter error: ${err.message}`);
-        });
-        log.info('Top.gg autoposter enabled');
+        const topgg = new TopggApi(topggToken);
+        const postStats = async () => {
+            try {
+                const serverCount = client.guilds.cache.size;
+                await topgg.postStats({ serverCount });
+                log.info(`Top.gg: posted ${serverCount} servers`);
+            } catch (err) {
+                log.error(`Top.gg stats error: ${err.message}`);
+            }
+        };
+        // Post immediately, then every 30 minutes
+        setTimeout(postStats, 5000);
+        setInterval(postStats, 30 * 60 * 1000);
+        log.info('Top.gg stats poster enabled');
     } else {
-        log.warn('TOPGG_TOKEN not set, skipping autoposter');
+        log.warn('TOPGG_TOKEN not set, skipping stats poster');
     }
 
     log.info('Discord bot started');
